@@ -21,69 +21,111 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
+
+var fileaddress = null;
 var audioContext = null;
 var meter = null;
 var canvasContext = null;
 var WIDTH=500;
 var HEIGHT=50;
 var rafID = null;
+var mediaStreamSource = null;
+$(document).ready(function(){
+    $("#form-to-be-submitted").click(function(){
+        //$(".whatever-styling-you-want").html($("#textBox").val());
+        fileaddress = $("#fileaddress").val();
+        console.log(fileaddress)
+        audioContext = new AudioContext();
+
+        //window.AudioContext = window.AudioContext || window.webkitAudioContext;
+
+        var audio = new Audio(fileaddress);
+        audio.controls = true;
+        audio.autoplay = false;
+        audio.crossOrigin = 'anonymous';
+        document.body.appendChild(audio);
+        
+        mediaStreamSource = audioContext.createMediaElementSource(audio);
+
+        meter = createAudioMeter(audioContext);
+        mediaStreamSource.connect(meter);
+
+        canvasContext = document.getElementById( "meter" ).getContext("2d");
+        drawLoop();
+
+
+    });
+});
+
+
+
+
+// https://stackoverflow.com/questions/26263132/programatically-record-audio-output-from-web-page-using-js-or-html5
+
+//https://stackoverflow.com/questions/14074833/using-local-file-for-web-audio-api-in-javascript
+
+// https://stackoverflow.com/questions/52263471/how-to-create-a-mediastream-from-a-uploaded-audio-file-or-a-audio-file-url-using
+
+// https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS/Errors/CORSRequestNotHttp
+// https://dev.to/dengel29/loading-local-files-in-firefox-and-chrome-m9f (about:config)
 
 window.onload = function() {
 
     // grab our canvas
-	canvasContext = document.getElementById( "meter" ).getContext("2d");
+	//canvasContext = document.getElementById( "meter" ).getContext("2d");
 	
     // monkeypatch Web Audio
-    window.AudioContext = window.AudioContext || window.webkitAudioContext;
+    //window.AudioContext = window.AudioContext || window.webkitAudioContext;
 	
     // grab an audio context
-    audioContext = new AudioContext();
+    //audioContext = new AudioContext();
 
     // Attempt to get audio input
     try {
         // monkeypatch getUserMedia
-        navigator.getUserMedia = 
-        	navigator.getUserMedia ||
-        	navigator.webkitGetUserMedia ||
-        	navigator.mozGetUserMedia;
+        // navigator.getUserMedia = 
+        // 	navigator.getUserMedia ||
+        // 	navigator.webkitGetUserMedia ||
+        // 	navigator.mozGetUserMedia;
 
-        // ask for an audio input
-        navigator.getUserMedia(
-        {
-            "audio": {
-                "mandatory": {
-                    "googEchoCancellation": "false",
-                    "googAutoGainControl": "false",
-                    "googNoiseSuppression": "false",
-                    "googHighpassFilter": "false"
-                },
-                "optional": []
-            },
-        }, gotStream, didntGetStream);
+        // // ask for an audio input
+        // navigator.getUserMedia(
+        // {
+        //     "audio": {
+        //         "mandatory": {
+        //             "googEchoCancellation": "false",
+        //             "googAutoGainControl": "false",
+        //             "googNoiseSuppression": "false",
+        //             "googHighpassFilter": "false"
+        //         },
+        //         "optional": []
+        //     },
+        // }, gotStream, didntGetStream);
+
+        //gotStream(audio)
+
     } catch (e) {
         alert('getUserMedia threw exception :' + e);
     }
 
 }
-
-
 function didntGetStream() {
     alert('Stream generation failed.');
 }
 
-var mediaStreamSource = null;
+//var mediaStreamSource = null;
+// function gotStream(stream) {
+//     // Create an AudioNode from the stream.
+//     //mediaStreamSource = audioContext.createMediaStreamSource(stream);
+//     mediaStreamSource = audioContext.createMediaElementSource(audio);
 
-function gotStream(stream) {
-    // Create an AudioNode from the stream.
-    mediaStreamSource = audioContext.createMediaStreamSource(stream);
+//     // Create a new volume meter and connect it.
+//     meter = createAudioMeter(audioContext);
+//     mediaStreamSource.connect(meter);
 
-    // Create a new volume meter and connect it.
-    meter = createAudioMeter(audioContext);
-    mediaStreamSource.connect(meter);
-
-    // kick off the visual updating
-    drawLoop();
-}
+//     // kick off the visual updating
+//     drawLoop();
+// }
 
 function drawLoop( time ) {
     // clear the background
